@@ -16,7 +16,7 @@ function cors_menu() {
     'description' => 'Enable Cross-origin resource sharing',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('cors_admin_form'),
-    'access arguments' => array('Administer site configuration'),
+    'access arguments' => array('administer site configuration'),
   );
 
   return $items;
