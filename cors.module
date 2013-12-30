@@ -36,11 +36,19 @@ function cors_admin_form($form, &$form_state) {
   $form['cors_domains'] = array(
     '#type' => 'textarea',
     '#title' => t('Domains'),
-    '#description' => t('A list of paths and corresponding domains to enable for CORS. Enter one value per line separated by a pipe e.g.
+    '#description' => t('A list of paths and corresponding domains to enable for CORS. Enter one value per line separated by a pipe, in this order:
+   <ul>
+     <li>Internal path</li>
+     <li>Access-Control-Allow-Origin</li>
+     <li>Access-Control-Allow-Methods</li>
+     <li>Access-Control-Allow-Headers</li>
+    </ul>
+    Examples:
     <ul>
       <li>*|http://example.com</li>
       <li>api|http://example.com:8080 http://example.com</li>
       <li>api/*|https://example.com</li>
+      <li>api/*|*|POST|Content-Type</li>
     </ul>'),
     '#default_value' => $cors_domains,
     '#rows' => 10,
@@ -64,7 +72,7 @@ function cors_admin_form_submit($form, &$form_state) {
     $domain = explode("|", $domain, 2);
     if (count($domain) === 2) {
       $settings[$domain[0]] = (isset($settings[$domain[0]])) ? $settings[$domain[0]] . ' ' : '';
-      $settings[$domain[0]] .= trim(drupal_strtolower($domain[1]));
+      $settings[$domain[0]] .= trim($domain[1]);
     }
   }
 
@@ -77,19 +85,42 @@ function cors_admin_form_submit($form, &$form_state) {
 function cors_init() {
   $domains = variable_get('cors_domains', array());
   $current_path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
-  $allowed_domains = '';
-  foreach ($domains as $path => $domain) {
+  $headers = array(
+    'all' => array(
+      'Access-Control-Allow-Origin' => array(),
+    ),
+    'OPTIONS' => array(
+      'Access-Control-Allow-Methods' => array(),
+      'Access-Control-Allow-Headers' => array(),
+    ),
+  );
+  foreach ($domains as $path => $settings) {
+    $settings = explode("|", $settings);
     $page_match = drupal_match_path($current_path, $path);
     if ($current_path != $_GET['q']) {
       $page_match = $page_match || drupal_match_path($_GET['q'], $path);
     }
     if ($page_match) {
-      $allowed_domains .= $domain . ' ';
+      if (!empty($settings[0])) {
+        $headers['all']['Access-Control-Allow-Origin'][] = trim($settings[0]);
+      }
+      if (!empty($settings[1])) {
+        $headers['OPTIONS']['Access-Control-Allow-Methods'][] = trim($settings[1]);
+      }
+      if (!empty($settings[2])) {
+        $headers['OPTIONS']['Access-Control-Allow-Headers'][] = trim($settings[2]);
+      }
     }
   }
-  $allowed_domains = trim($allowed_domains);
-  if (strlen($allowed_domains) > 0) {
-    drupal_add_http_header('Access-Control-Allow-Origin', $allowed_domains, TRUE);
+
+  foreach ($headers as $method => $allowed) {
+    if ($method === 'all' || $method === $_SERVER['REQUEST_METHOD']) {
+      foreach ($allowed as $header => $values) {
+        if (!empty($values)) {
+          drupal_add_http_header($header, implode(' ', $values), TRUE);
+        }
+      }
+    }
   }
 }
 
