@@ -39,7 +39,7 @@ function cors_admin_form($form, &$form_state) {
     '#description' => t('A list of paths and corresponding domains to enable for CORS. Multiple entries should be separated by a comma. Enter one value per line separated by a pipe, in this order:
    <ul>
      <li>Internal path</li>
-     <li>Access-Control-Allow-Origin. Use <mirror> to echo back the Origin header.</li>
+     <li>Access-Control-Allow-Origin. Use &lt;mirror&gt; to echo back the Origin header.</li>
      <li>Access-Control-Allow-Methods</li>
      <li>Access-Control-Allow-Headers</li>
      <li>Access-Control-Allow-Credentials</li>
@@ -48,8 +48,8 @@ function cors_admin_form($form, &$form_state) {
     <ul>
       <li>*|http://example.com</li>
       <li>api|http://example.com:8080 http://example.com</li>
-      <li>api/*|https://example.com</li>
-      <li>api/*|*|POST|Content-Type,Authorization|true</li>
+      <li>api/*|&lt;mirror&gt;,https://example.com</li>
+      <li>api/*|&lt;mirror&gt;|POST|Content-Type,Authorization|true</li>
     </ul>'),
     '#default_value' => $cors_domains,
     '#rows' => 10,
