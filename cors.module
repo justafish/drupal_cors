@@ -39,9 +39,10 @@ function cors_admin_form($form, &$form_state) {
     '#description' => t('A list of paths and corresponding domains to enable for CORS. Enter one value per line separated by a pipe, in this order:
    <ul>
      <li>Internal path</li>
-     <li>Access-Control-Allow-Origin</li>
+     <li>Access-Control-Allow-Origin. Use <mirror> to echo back the Origin header.</li>
      <li>Access-Control-Allow-Methods</li>
      <li>Access-Control-Allow-Headers</li>
+     <li>Access-Control-Allow-Credentials</li>
     </ul>
     Examples:
     <ul>
@@ -85,9 +86,11 @@ function cors_admin_form_submit($form, &$form_state) {
 function cors_init() {
   $domains = variable_get('cors_domains', array());
   $current_path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+  $request_headers = getallheaders();
   $headers = array(
     'all' => array(
       'Access-Control-Allow-Origin' => array(),
+      'Access-Control-Allow-Credentials' => array(),
     ),
     'OPTIONS' => array(
       'Access-Control-Allow-Methods' => array(),
@@ -102,7 +105,14 @@ function cors_init() {
     }
     if ($page_match) {
       if (!empty($settings[0])) {
-        $headers['all']['Access-Control-Allow-Origin'][] = trim($settings[0]);
+        $allow_origin = trim($settings[0]);
+        if ($allow_origin === '<mirror>' && !empty($request_headers['Origin'])) {
+          $headers['all']['Access-Control-Allow-Origin'][] = $request_headers['Origin'];
+        }
+        else {
+          $headers['all']['Access-Control-Allow-Origin'][] = trim($settings[0]);
+        }
+        $headers['all']['Access-Control-Allow-Credentials'][] = trim($settings[3]);
       }
       if (!empty($settings[1])) {
         $headers['OPTIONS']['Access-Control-Allow-Methods'][] = trim($settings[1]);
