@@ -36,7 +36,7 @@ function cors_admin_form($form, &$form_state) {
   $form['cors_domains'] = array(
     '#type' => 'textarea',
     '#title' => t('Domains'),
-    '#description' => t('A list of paths and corresponding domains to enable for CORS. Enter one value per line separated by a pipe, in this order:
+    '#description' => t('A list of paths and corresponding domains to enable for CORS. Multiple entries should be separated by a comma. Enter one value per line separated by a pipe, in this order:
    <ul>
      <li>Internal path</li>
      <li>Access-Control-Allow-Origin. Use <mirror> to echo back the Origin header.</li>
@@ -49,7 +49,7 @@ function cors_admin_form($form, &$form_state) {
       <li>*|http://example.com</li>
       <li>api|http://example.com:8080 http://example.com</li>
       <li>api/*|https://example.com</li>
-      <li>api/*|*|POST|Content-Type</li>
+      <li>api/*|*|POST|Content-Type,Authorization|true</li>
     </ul>'),
     '#default_value' => $cors_domains,
     '#rows' => 10,
@@ -105,20 +105,27 @@ function cors_init() {
     }
     if ($page_match) {
       if (!empty($settings[0])) {
-        $allow_origin = trim($settings[0]);
-        if ($allow_origin === '<mirror>' && !empty($request_headers['Origin'])) {
-          $headers['all']['Access-Control-Allow-Origin'][] = $request_headers['Origin'];
+        $origins = explode(',', trim($settings[0]));
+        foreach ($origins as $origin) {
+          if ($origin === '<mirror>') {
+            if (!empty($request_headers['Origin'])) {
+              $headers['all']['Access-Control-Allow-Origin'][] = $request_headers['Origin'];
+            }
+          }
+          else {
+            $headers['all']['Access-Control-Allow-Origin'][] = $origin;
+          }
         }
-        else {
-          $headers['all']['Access-Control-Allow-Origin'][] = trim($settings[0]);
-        }
-        $headers['all']['Access-Control-Allow-Credentials'][] = trim($settings[3]);
+
       }
       if (!empty($settings[1])) {
-        $headers['OPTIONS']['Access-Control-Allow-Methods'][] = trim($settings[1]);
+        $headers['OPTIONS']['Access-Control-Allow-Methods'] = explode(',', trim($settings[1]));
       }
       if (!empty($settings[2])) {
-        $headers['OPTIONS']['Access-Control-Allow-Headers'][] = trim($settings[2]);
+        $headers['OPTIONS']['Access-Control-Allow-Headers'] = explode(',', trim($settings[2]));
+      }
+      if (!empty($settings[3])) {
+        $headers['all']['Access-Control-Allow-Credentials'] = explode(',', trim($settings[3]));
       }
     }
   }
@@ -127,7 +134,9 @@ function cors_init() {
     if ($method === 'all' || $method === $_SERVER['REQUEST_METHOD']) {
       foreach ($allowed as $header => $values) {
         if (!empty($values)) {
-          drupal_add_http_header($header, implode(' ', $values), TRUE);
+          foreach ($values as $value) {
+            drupal_add_http_header($header, $value, TRUE);
+          }
         }
       }
     }
