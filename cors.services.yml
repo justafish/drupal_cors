@@ -1,0 +1,5 @@
+services:
+  cors_event_subscriber:
+    class: Drupal\mymodule\EventSubscriber\MymoduleSubscriber
+    tags:
+      - {name: event_subscriber}
