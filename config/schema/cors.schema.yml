@@ -1,0 +1,15 @@
+# Schema for the configuration files of the aggregator module.
+
+cors.settings:
+  type: mapping
+  label: 'CORS settings'
+  mapping:
+    type: mapping
+    label: 'Domains'
+    domains:
+      type: mapping
+      label: 'Domain'
+      mapping:
+        path:
+          type: string
+          label: 'Path'

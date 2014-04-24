@@ -1,4 +1,4 @@
-cors.settings
+cors.settings:
   path: 'admin/config/services/cors'
   defaults:
     _form: '\Drupal\cors\Form\CorsAdminForm'

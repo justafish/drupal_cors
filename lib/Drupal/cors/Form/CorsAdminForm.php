@@ -63,7 +63,7 @@ class CorsAdminForm extends ConfigFormBase {
         $settings[$domain[0]] .= trim($domain[1]);
       }
     }
-    $this->config('cors.settings')->set('domains', $settings);
+    $this->config('cors.settings')->set('domains', $settings)->save();
     parent::submitForm($form, $form_state);
   }
 

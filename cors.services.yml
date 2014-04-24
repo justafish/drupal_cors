@@ -1,5 +1,6 @@
 services:
   cors_event_subscriber:
-    class: Drupal\mymodule\EventSubscriber\MymoduleSubscriber
+    class: Drupal\cors\EventSubscriber\CorsResponseEventSubscriber
+    arguments: ['@config.factory', '@path.alias_manager.cached']
     tags:
       - {name: event_subscriber}

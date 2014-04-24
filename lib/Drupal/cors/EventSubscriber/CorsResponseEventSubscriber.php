@@ -10,6 +10,7 @@ namespace Drupal\cors\EventSubscriber;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Path\AliasManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
@@ -51,7 +52,7 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
    * @param GetResponseEvent $event
    *   The GET response event.
    */
-  public function addCorsHeaders(GetResponseEvent $event) {
+  public function addCorsHeaders(FilterResponseEvent $event) {
 
     $domains = $this->config->get('domains');
     $request = $event->getRequest();
