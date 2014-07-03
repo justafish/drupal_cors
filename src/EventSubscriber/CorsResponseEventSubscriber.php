@@ -57,7 +57,7 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
     $domains = $this->config->get('domains');
     $request = $event->getRequest();
     $pathInfo = $request->getPathInfo();
-    $current_path = $this->aliasManager->getPathAlias($pathInfo);
+    $current_path = $this->aliasManager->getPathByAlias($pathInfo);
     $request_headers = $request->headers->all();
     $headers = array(
       'all' => array(
@@ -124,4 +124,5 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
     $events[KernelEvents::RESPONSE][] = array('addCorsHeaders');
     return $events;
   }
+
 }

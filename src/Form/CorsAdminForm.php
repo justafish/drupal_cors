@@ -2,10 +2,11 @@
 
 /**
  * @file
- * Contains \Drupal\cors\Form\CorsAdminForm
+ * Contains \Drupal\cors\Form\CorsAdminForm.
  */
 
 namespace Drupal\cors\Form;
+
 use Drupal\Core\Form\ConfigFormBase;
 
 /**
@@ -13,10 +14,16 @@ use Drupal\Core\Form\ConfigFormBase;
  */
 class CorsAdminForm extends ConfigFormBase {
 
+  /**
+   * {@inheritdoc}
+   */
   public function getFormId(){
     return 'cors_admin_form';
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function buildForm(array $form, array &$form_state) {
 
     $cors_domains = '';
@@ -66,6 +73,5 @@ class CorsAdminForm extends ConfigFormBase {
     $this->config('cors.settings')->set('domains', $settings)->save();
     parent::submitForm($form, $form_state);
   }
-
 
 }
