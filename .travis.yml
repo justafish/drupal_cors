@@ -76,7 +76,8 @@ script:
   - cd $TRAVIS_BUILD_DIR/../drupal
   - ls -la $TRAVIS_BUILD_DIR/../drupal/sites/default
   # Run the tests
-  - php core/scripts/run-tests.sh --verbose --color --concurrency 4 --php `which php` --url http://localhost "CORS" | tee /tmp/test.txt
+  # Re-enable when we have simpletests
+  #  - php core/scripts/run-tests.sh --verbose --color --concurrency 4 --php `which php` --url http://localhost "CORS" | tee /tmp/test.txt
   - TEST_EXIT=${PIPESTATUS[0]}
   - echo $TEST_EXIT
   # Check if we had fails in the run-tests.sh script
