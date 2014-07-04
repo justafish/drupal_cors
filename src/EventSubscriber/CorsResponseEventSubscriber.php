@@ -9,9 +9,9 @@ namespace Drupal\cors\EventSubscriber;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Path\AliasManagerInterface;
+use Drupal\Core\Path\PathMatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -34,30 +34,40 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
   protected $aliasManager;
 
   /**
+   * The path matcher.
+   *
+   * @var \Drupal\Core\Path\PathMatcherInterface
+   */
+  protected $pathMatcher;
+
+  /**
    * Constructs a new CORS response event subscriber.
    *
    * @param ConfigFactoryInterface $config_factory
    *   The config factory.
    * @param \Drupal\Core\Path\AliasManagerInterface $alias_manager
    *   The alias manager.
+   * @param \Drupal\Core\Path\PathMatcherInterface $path_matcher
+   *   The path matcher.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, AliasManagerInterface $alias_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, AliasManagerInterface $alias_manager, PathMatcherInterface $path_matcher) {
     $this->config = $config_factory->get('cors.settings');
     $this->aliasManager = $alias_manager;
+    $this->pathMatcher = $path_matcher;
   }
 
   /**
    * Adds CORS headers to the response.
    *
-   * @param GetResponseEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\FilterResponseEvent $event
    *   The GET response event.
    */
   public function addCorsHeaders(FilterResponseEvent $event) {
 
     $domains = $this->config->get('domains');
     $request = $event->getRequest();
-    $pathInfo = $request->getPathInfo();
-    $current_path = $this->aliasManager->getPathByAlias($pathInfo);
+    $path_info = $request->getPathInfo();
+    $current_path = $this->aliasManager->getPathByAlias($path_info);
     $request_headers = $request->headers->all();
     $headers = array(
       'all' => array(
@@ -71,9 +81,9 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
     );
     foreach ($domains as $path => $settings) {
       $settings = explode("|", $settings);
-      $page_match = drupal_match_path($current_path, $path);
-      if ($current_path != $pathInfo) {
-        $page_match = $page_match || drupal_match_path($pathInfo, $path);
+      $page_match = $this->pathMatcher->matchPath($current_path, $path);
+      if ($current_path != $path_info) {
+        $page_match = $page_match || $this->pathMatcher->matchPath($path_info, $path);
       }
       if ($page_match) {
         if (!empty($settings[0])) {
@@ -105,7 +115,8 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
     $response = $event->getResponse();
 
     foreach ($headers as $method => $allowed) {
-      if ($method === 'all' || $method === $_SERVER['REQUEST_METHOD']) {
+      $current_method = $request->getMethod();
+      if ($method === 'all' || $method === $current_method) {
         foreach ($allowed as $header => $values) {
           if (!empty($values)) {
             foreach ($values as $value) {
