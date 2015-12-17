@@ -2,12 +2,13 @@
 
 /**
  * @file
- * Contains Drupal\cors\EventSubscriber\CorsResponseEventSubscriberTest
+ * Contains Drupal\Tests\cors\Unit\EventSubscriber\CorsResponseEventSubscriberTest.
  */
 
-namespace Drupal\cors\EventSubscriber;
+namespace Drupal\Tests\cors\Unit\EventSubscriber;
 
 use Drupal\Tests\UnitTestCase;
+use Drupal\cors\EventSubscriber\CorsResponseEventSubscriber;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;

@@ -7,8 +7,9 @@ cache:
   apt: true
 
 php:
-  - 5.4
   - 5.5
+  - 5.6
+  - 5.7
 
 notifications:
   email:
@@ -51,7 +52,7 @@ install:
   - echo "error_log=syslog" >> `php --ini | grep "Loaded Configuration" | awk '{print $4}'`
   # Get latest drupal 8 core
   - cd $TRAVIS_BUILD_DIR/..
-  - git clone --depth 1 --branch 8.x http://git.drupal.org/project/drupal.git
+  - git clone --depth 1 --branch 8.0.x http://git.drupal.org/project/drupal.git
   # Restart apache and test it
   - sudo service apache2 restart
   - curl -v "http://localhost"
@@ -61,7 +62,7 @@ install:
 before_script:
   - cd $TRAVIS_BUILD_DIR/../drupal
   # Update drupal core
-  - git pull origin 8.x
+  - git pull origin 8.0.x
   # Install the site
   - drush -v site-install minimal --db-url=mysql://root:@localhost/drupal --yes
   - drush en --yes simpletest
