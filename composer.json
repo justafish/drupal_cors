@@ -1,0 +1,10 @@
+{
+  "require-dev": {
+    "squizlabs/php_codesniffer": "~1.5",
+    "drupal/coder": "dev-7.x-2.x"
+  },
+  "minimum-stability": "dev",
+  "config": {
+    "bin-dir": "bin/"
+  }
+}

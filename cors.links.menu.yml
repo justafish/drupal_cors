@@ -1,0 +1,5 @@
+cores.settings:
+  title: 'CORS'
+  description: 'Enable Cross-origin resource sharing.'
+  route_name: cors.settings
+  parent: system.admin_config_services

@@ -1,0 +1,6 @@
+services:
+  cors_event_subscriber:
+    class: Drupal\cors\EventSubscriber\CorsResponseEventSubscriber
+    arguments: ['@config.factory', '@path.alias_manager', '@path.matcher']
+    tags:
+      - {name: event_subscriber}
