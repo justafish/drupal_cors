@@ -101,13 +101,13 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
 
         }
         if (!empty($settings[1])) {
-          $headers['OPTIONS']['Access-Control-Allow-Methods'] = explode(',', trim($settings[1]));
+          $headers['OPTIONS']['Access-Control-Allow-Methods'] = [ self::formatMultipleValueHeader($settings[1]) ];
         }
         if (!empty($settings[2])) {
-          $headers['OPTIONS']['Access-Control-Allow-Headers'] = explode(',', trim($settings[2]));
+          $headers['OPTIONS']['Access-Control-Allow-Headers'] = [ self::formatMultipleValueHeader($settings[2]) ];
         }
         if (!empty($settings[3])) {
-          $headers['all']['Access-Control-Allow-Credentials'] = explode(',', trim($settings[3]));
+          $headers['all']['Access-Control-Allow-Credentials'] = [ self::formatMultipleValueHeader($settings[3]) ];
         }
       }
     }
@@ -134,6 +134,16 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
   public static function getSubscribedEvents() {
     $events[KernelEvents::RESPONSE][] = array('addCorsHeaders');
     return $events;
+  }
+
+  /**
+   * Helper function to format headers that might have multiple values.
+   *
+   * @param string $value
+   */
+  public static function formatMultipleValueHeader($value) {
+    $parts = array_map(trim, explode(',', $value));
+    return implode(', ', $parts);
   }
 
 }
