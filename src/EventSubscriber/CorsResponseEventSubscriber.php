@@ -142,7 +142,7 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
    * @param string $value
    */
   public static function formatMultipleValueHeader($value) {
-    $parts = array_map(trim, explode(',', $value));
+    $parts = array_map('trim', explode(',', $value));
     return implode(', ', $parts);
   }
 
