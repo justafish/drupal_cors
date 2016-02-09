@@ -55,7 +55,7 @@ class CorsAdminForm extends ConfigFormBase {
           <li>*|http://example.com</li>
           <li>api|http://example.com:8080 http://example.com</li>
           <li>api/*|&lt;mirror&gt;,https://example.com</li>
-          <li>api/*|&lt;mirror&gt;|POST|Content-Type,Authorization|true</li>
+          <li>api/*|&lt;mirror&gt;|DELETE, POST|Content-Type,Authorization|true</li>
         </ul>'),
       '#default_value' => $cors_domains,
       '#rows' => 10,
