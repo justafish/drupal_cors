@@ -30,12 +30,8 @@ class CorsResponseEventSubscriberTest extends UnitTestCase {
     );
   }
 
-  /**
-   * Tests adding CORS headers to the response.
-   */
-  public function testAddCorsHeaders() {
-
-    $config_factory = $this->getConfigFactoryStub(array("cors.settings" => array("domains" => array("* | http://example.com"))));
+  protected function setupSubscriber() {
+    $config_factory = $this->getConfigFactoryStub(array("cors.settings" => array("domains" => array('*' => 'http://example.com|POST,GET|Content-type,Authorization|true '))));
     $alias_manager = $this->getMock('Drupal\Core\Path\AliasManagerInterface');
     $path_matcher = $this->getMock('Drupal\Core\Path\PathMatcherInterface');
     $path_matcher->expects($this->any())
@@ -45,6 +41,14 @@ class CorsResponseEventSubscriberTest extends UnitTestCase {
 
     // Create the response event subscriber.
     $subscriber = new CorsResponseEventSubscriber($config_factory, $alias_manager, $path_matcher);
+    return $subscriber;
+  }
+
+  /**
+   * Tests adding CORS headers to the response.
+   */
+  public function testAddCorsHeaders() {
+    $subscriber = $this->setupSubscriber();
 
     // Create the response event.
     $http_kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
@@ -55,7 +59,28 @@ class CorsResponseEventSubscriberTest extends UnitTestCase {
     // Call the event handler.
     $subscriber->addCorsHeaders($event);
 
-    $this->assertEquals('*', $response->headers->get('access-control-allow-origin'), "The access-control-allow-origin header was set");
+    $this->assertEquals(['http://example.com'], $response->headers->get('access-control-allow-origin', NULL, FALSE), "The access-control-allow-origin header was set");
+    $this->assertEquals(['true'], $response->headers->get('Access-Control-Allow-Credentials', NULL, FALSE));
+    $this->assertEquals([], $response->headers->get('Access-Control-Allow-Methods', NULL, FALSE));
+    $this->assertEquals([], $response->headers->get('Access-Control-Allow-Headers', NULL, FALSE));
+  }
+
+  public function testOptionsRequest() {
+    $subscriber = $this->setupSubscriber();
+
+    // Create the response event.
+    $http_kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
+    $request = Request::create('/example', 'OPTIONS');
+    $response = new Response();
+    $event = new FilterResponseEvent($http_kernel, $request, HttpKernelInterface::MASTER_REQUEST, $response);
+
+    // Call the event handler.
+    $subscriber->addCorsHeaders($event);
+
+    $this->assertEquals(['http://example.com'], $response->headers->get('access-control-allow-origin', NULL, FALSE), "The access-control-allow-origin header was set");
+    $this->assertEquals(['true'], $response->headers->get('Access-Control-Allow-Credentials', NULL, FALSE));
+    $this->assertEquals(['POST', 'GET'], $response->headers->get('Access-Control-Allow-Methods', NULL, FALSE));
+    $this->assertEquals(['Content-type', 'Authorization'], $response->headers->get('Access-Control-Allow-Headers', NULL, FALSE));
   }
 
 }
