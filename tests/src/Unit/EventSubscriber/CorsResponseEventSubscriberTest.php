@@ -15,7 +15,8 @@ use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 /**
- *
+ * @coversDefaultClass \Drupal\cors\EventSubscriber\CorsResponseEventSubscriber
+ * @group cors
  */
 class CorsResponseEventSubscriberTest extends UnitTestCase {
 
