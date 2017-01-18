@@ -64,68 +64,69 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
    */
   public function addCorsHeaders(FilterResponseEvent $event) {
 
+    /** @var array $domains */
     $domains = $this->config->get('domains');
     $request = $event->getRequest();
     $path_info = $request->getPathInfo();
     $current_path = $this->aliasManager->getPathByAlias($path_info);
     $request_headers = $request->headers->all();
-    $headers = array(
-      'all' => array(
-        'Access-Control-Allow-Origin' => array(),
-        'Access-Control-Allow-Credentials' => array(),
-      ),
-      'OPTIONS' => array(
-        'Access-Control-Allow-Methods' => array(),
-        'Access-Control-Allow-Headers' => array(),
-      ),
-    );
+    $headers_per_path = [];
     foreach ($domains as $path => $settings) {
-      $settings = explode("|", $settings);
+      $settings = explode('|', $settings);
       $page_match = $this->pathMatcher->matchPath($current_path, $path);
-      if ($current_path != $path_info) {
+      if ($current_path !== $path_info) {
         $page_match = $page_match || $this->pathMatcher->matchPath($path_info, $path);
       }
       if ($page_match) {
         if (!empty($settings[0])) {
-          $origins = explode(',', trim($settings[0]));
+          $origins = array_map('trim', explode(',', $settings[0]));
           foreach ($origins as $origin) {
             if ($origin === '<mirror>') {
               if (!empty($request_headers['Origin'])) {
-                $headers['all']['Access-Control-Allow-Origin'][] = $request_headers['Origin'];
+                $headers_per_path[$path]['Access-Control-Allow-Origin'][] = $request_headers['Origin'];
               }
             }
             else {
-              $headers['all']['Access-Control-Allow-Origin'][] = $origin;
+              $headers_per_path[$path]['Access-Control-Allow-Origin'][] = $origin;
             }
           }
-
+          $headers_per_path[$path]['Access-Control-Allow-Origin'] = implode(', ', $headers_per_path[$path]['Access-Control-Allow-Origin']);
         }
         if (!empty($settings[1])) {
-          $headers['OPTIONS']['Access-Control-Allow-Methods'] = explode(',', trim($settings[1]));
+          $headers_per_path[$path]['Access-Control-Allow-Methods'] = $this->formatMultipleValueHeader($settings[1]);
         }
         if (!empty($settings[2])) {
-          $headers['OPTIONS']['Access-Control-Allow-Headers'] = explode(',', trim($settings[2]));
+          $headers_per_path[$path]['Access-Control-Allow-Headers'] = $this->formatMultipleValueHeader($settings[2]);
         }
         if (!empty($settings[3])) {
-          $headers['all']['Access-Control-Allow-Credentials'] = explode(',', trim($settings[3]));
+          $headers_per_path[$path]['Access-Control-Allow-Credentials'] = trim($settings[3]);
         }
       }
     }
 
     $response = $event->getResponse();
 
-    foreach ($headers as $method => $allowed) {
-      $current_method = $request->getMethod();
-      if ($method === 'all' || $method === $current_method) {
-        foreach ($allowed as $header => $values) {
-          if (!empty($values)) {
-            foreach ($values as $value) {
-              $response->headers->set($header, $value, TRUE);
-            }
-          }
+    /** @var array $headers */
+    foreach ($headers_per_path as $path => $headers) {
+      foreach ($headers as $header => $values) {
+        if (!empty($values)) {
+          $response->headers->set($header, $values, TRUE);
         }
       }
     }
+  }
+
+  /**
+   * Helper function to format headers that might have multiple values.
+   *
+   * @param string $value
+   *   CORS settings value.
+   *
+   * @return string
+   *   Formatted value.
+   */
+  protected function formatMultipleValueHeader($value) {
+    return implode(', ', array_map('trim', explode(',', $value)));
   }
 
   /**
