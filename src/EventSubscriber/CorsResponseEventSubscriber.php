@@ -82,15 +82,14 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
           $origins = array_map('trim', explode(',', $settings[0]));
           foreach ($origins as $origin) {
             if ($origin === '<mirror>') {
-              if (!empty($request_headers['Origin'])) {
-                $headers_per_path[$path]['Access-Control-Allow-Origin'][] = $request_headers['Origin'];
+              if (!empty($request_headers['origin'])) {
+                $headers_per_path[$path]['Access-Control-Allow-Origin'] = $request_headers['origin'][0];
               }
             }
-            else {
-              $headers_per_path[$path]['Access-Control-Allow-Origin'][] = $origin;
+            else if (count($origins) == 1 || ((count($origins) > 1) && $origin == $request_headers['origin'][0])) {
+              $headers_per_path[$path]['Access-Control-Allow-Origin'] = $origin;
             }
           }
-          $headers_per_path[$path]['Access-Control-Allow-Origin'] = implode(', ', $headers_per_path[$path]['Access-Control-Allow-Origin']);
         }
         if (!empty($settings[1])) {
           $headers_per_path[$path]['Access-Control-Allow-Methods'] = $this->formatMultipleValueHeader($settings[1]);
