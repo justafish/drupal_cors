@@ -6,5 +6,8 @@
   "minimum-stability": "dev",
   "config": {
     "bin-dir": "bin/"
-  }
+  },
+  "name": "drupal/cors",
+  "description": "Drupal CORS module http://drupal.org/project/cors",
+  "type": "drupal-module"
 }
