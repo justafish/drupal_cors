@@ -68,7 +68,6 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
     $request = $event->getRequest();
     $path_info = $request->getPathInfo();
     $current_path = $this->aliasManager->getPathByAlias($path_info);
-    $request_headers = $request->headers->all();
     $headers = array(
       'all' => array(
         'Access-Control-Allow-Origin' => array(),
@@ -90,8 +89,8 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
           $origins = explode(',', trim($settings[0]));
           foreach ($origins as $origin) {
             if ($origin === '<mirror>') {
-              if (!empty($request_headers['Origin'])) {
-                $headers['all']['Access-Control-Allow-Origin'][] = $request_headers['Origin'];
+              if ($request->headers->has('Origin')) {
+                $headers['all']['Access-Control-Allow-Origin'][] = $request->headers->get('Origin');
               }
             }
             else {
