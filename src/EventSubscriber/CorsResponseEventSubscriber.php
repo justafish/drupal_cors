@@ -104,7 +104,7 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
           $headers['OPTIONS']['Access-Control-Allow-Methods'] = explode(',', trim($settings[1]));
         }
         if (!empty($settings[2])) {
-          $headers['OPTIONS']['Access-Control-Allow-Headers'] = explode(',', trim($settings[2]));
+          $headers['OPTIONS']['Access-Control-Allow-Headers'] = array(trim($settings[2]));
         }
         if (!empty($settings[3])) {
           $headers['all']['Access-Control-Allow-Credentials'] = explode(',', trim($settings[3]));
