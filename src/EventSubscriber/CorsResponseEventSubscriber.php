@@ -113,13 +113,26 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
     }
 
     $response = $event->getResponse();
-
+    $referer = $request->headers->get('referer');
+    $parse_referer = parse_url($referer);
+    $referer = $parse_referer['scheme'].'://'.$parse_referer['host'];
+    if (isset($parse_referer['port'])) {
+      $referer .= ':'.$parse_referer['port'];
+    }
+    
     foreach ($headers as $method => $allowed) {
       $current_method = $request->getMethod();
       if ($method === 'all' || $method === $current_method) {
         foreach ($allowed as $header => $values) {
           if (!empty($values)) {
-            $response->headers->set($header, $values);
+            foreach ($values as $value) {
+              if ($header === 'Access-Control-Allow-Origin' && $value !== $referer) {
+                continue;
+              }
+              else {
+                $response->headers->set($header, $value, TRUE);
+              }
+            }
           }
         }
       }
