@@ -47,7 +47,7 @@ function cors_admin_form($form, &$form_state) {
     Examples:
     <ul>
       <li>*|http://example.com</li>
-      <li>api|http://example.com:8080 http://example.com</li>
+      <li>api|http://example.com:8080,http://example.com</li>
       <li>api/*|&lt;mirror&gt;,https://example.com</li>
       <li>api/*|&lt;mirror&gt;|POST|Content-Type,Authorization|true</li>
     </ul>'),
@@ -135,7 +135,12 @@ function cors_init() {
       foreach ($allowed as $header => $values) {
         if (!empty($values)) {
           foreach ($values as $value) {
-            drupal_add_http_header($header, $value, TRUE);
+            if ($header === 'Access-Control-Allow-Origin' && $value !== $referer) {
+              continue;
+            }
+            else {
+              drupal_add_http_header($header, $value, TRUE);
+            }
           }
         }
       }
