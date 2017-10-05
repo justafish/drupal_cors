@@ -101,10 +101,10 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
 
         }
         if (!empty($settings[1])) {
-          $headers['OPTIONS']['Access-Control-Allow-Methods'] = explode(',', trim($settings[1]));
+          $headers['OPTIONS']['Access-Control-Allow-Methods'] = [$settings[1]];
         }
         if (!empty($settings[2])) {
-          $headers['OPTIONS']['Access-Control-Allow-Headers'] = explode(',', trim($settings[2]));
+          $headers['OPTIONS']['Access-Control-Allow-Headers'] = [$settings[2]];
         }
         if (!empty($settings[3])) {
           $headers['all']['Access-Control-Allow-Credentials'] = [trim($settings[3])];
@@ -121,14 +121,17 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
     }
 
     foreach ($headers as $method => $allowed) {
-      foreach ($allowed as $header => $values) {
-        if (!empty($values)) {
-          foreach ($values as $value) {
-            if ($header === 'Access-Control-Allow-Origin' && $value !== $referer) {
-              continue;
-            }
-            else {
-              $response->headers->set($header, $value, FALSE);
+      $current_method = $request->getMethod();
+      if ($method === 'all' || $method === $current_method) {
+        foreach ($allowed as $header => $values) {
+          if (!empty($values)) {
+            foreach ($values as $value) {
+              if ($header === 'Access-Control-Allow-Origin' && $value !== $referer) {
+                continue;
+              }
+              else {
+                $response->headers->set($header, $value, TRUE);
+              }
             }
           }
         }
