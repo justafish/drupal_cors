@@ -69,16 +69,16 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
     $path_info = $request->getPathInfo();
     $current_path = $this->aliasManager->getPathByAlias($path_info);
     $request_headers = $request->headers->all();
-    $headers = array(
-      'all' => array(
-        'Access-Control-Allow-Origin' => array(),
-        'Access-Control-Allow-Credentials' => array(),
-      ),
-      'OPTIONS' => array(
-        'Access-Control-Allow-Methods' => array(),
-        'Access-Control-Allow-Headers' => array(),
-      ),
-    );
+    $headers = [
+      'all'     => [
+        'Access-Control-Allow-Origin'      => [],
+        'Access-Control-Allow-Credentials' => [],
+      ],
+      'OPTIONS' => [
+        'Access-Control-Allow-Methods' => [],
+        'Access-Control-Allow-Headers' => [],
+      ],
+    ];
     foreach ($domains as $path => $settings) {
       $settings = explode("|", $settings);
       $page_match = $this->pathMatcher->matchPath($current_path, $path);
@@ -107,7 +107,7 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
           $headers['OPTIONS']['Access-Control-Allow-Headers'] = explode(',', trim($settings[2]));
         }
         if (!empty($settings[3])) {
-          $headers['all']['Access-Control-Allow-Credentials'] = explode(',', trim($settings[3]));
+          $headers['all']['Access-Control-Allow-Credentials'] = [trim($settings[3])];
         }
       }
     }
@@ -115,23 +115,20 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
     $response = $event->getResponse();
     $referer = $request->headers->get('referer');
     $parse_referer = parse_url($referer);
-    $referer = $parse_referer['scheme'].'://'.$parse_referer['host'];
+    $referer = $parse_referer['scheme'] . '://' . $parse_referer['host'];
     if (isset($parse_referer['port'])) {
-      $referer .= ':'.$parse_referer['port'];
+      $referer .= ':' . $parse_referer['port'];
     }
-    
+
     foreach ($headers as $method => $allowed) {
-      $current_method = $request->getMethod();
-      if ($method === 'all' || $method === $current_method) {
-        foreach ($allowed as $header => $values) {
-          if (!empty($values)) {
-            foreach ($values as $value) {
-              if ($header === 'Access-Control-Allow-Origin' && $value !== $referer) {
-                continue;
-              }
-              else {
-                $response->headers->set($header, $value, TRUE);
-              }
+      foreach ($allowed as $header => $values) {
+        if (!empty($values)) {
+          foreach ($values as $value) {
+            if ($header === 'Access-Control-Allow-Origin' && $value !== $referer) {
+              continue;
+            }
+            else {
+              $response->headers->set($header, $value, FALSE);
             }
           }
         }
@@ -143,7 +140,7 @@ class CorsResponseEventSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public static function getSubscribedEvents() {
-    $events[KernelEvents::RESPONSE][] = array('addCorsHeaders');
+    $events[KernelEvents::RESPONSE][] = ['addCorsHeaders'];
     return $events;
   }
 
