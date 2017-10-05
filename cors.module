@@ -47,7 +47,7 @@ function cors_admin_form($form, &$form_state) {
     Examples:
     <ul>
       <li>*|http://example.com</li>
-      <li>api|http://example.com:8080 http://example.com</li>
+      <li>api|http://example.com:8080,http://example.com</li>
       <li>api/*|&lt;mirror&gt;,https://example.com</li>
       <li>api/*|&lt;mirror&gt;|POST|Content-Type,Authorization|true</li>
     </ul>'),
@@ -119,13 +119,13 @@ function cors_init() {
 
       }
       if (!empty($settings[1])) {
-        $headers['OPTIONS']['Access-Control-Allow-Methods'] = explode(',', trim($settings[1]));
+        $headers['OPTIONS']['Access-Control-Allow-Methods'] = [trim($settings[1])];
       }
       if (!empty($settings[2])) {
-        $headers['OPTIONS']['Access-Control-Allow-Headers'] = explode(',', trim($settings[2]));
+        $headers['OPTIONS']['Access-Control-Allow-Headers'] = [trim($settings[2])];
       }
       if (!empty($settings[3])) {
-        $headers['all']['Access-Control-Allow-Credentials'] = explode(',', trim($settings[3]));
+        $headers['all']['Access-Control-Allow-Credentials'] = [trim($settings[3])];
       }
     }
   }
@@ -135,7 +135,12 @@ function cors_init() {
       foreach ($allowed as $header => $values) {
         if (!empty($values)) {
           foreach ($values as $value) {
-            drupal_add_http_header($header, $value, TRUE);
+            if ($header === 'Access-Control-Allow-Origin' && $value !== $_SERVER['HTTP_REFERER']) {
+              continue;
+            }
+            else {
+              drupal_add_http_header($header, $value, TRUE);
+            }
           }
         }
       }
